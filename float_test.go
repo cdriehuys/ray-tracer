@@ -37,6 +37,11 @@ func TestFloat64Equal(t *testing.T) {
 			args: args{1.3, 1.3 + floatEpsilon / 10},
 			want: true,
 		},
+		{
+			name: "equivalent computation",
+			args: args{0.3, 0.1 + 0.2},
+			want: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

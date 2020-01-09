@@ -2,21 +2,105 @@ package main
 
 import "testing"
 
-func TestTuple_IsPoint(t1 *testing.T) {
-	tests := []struct {
-		name   string
-		tuple Tuple
-		want   bool
-	}{
+type tupleOperationTest struct {
+	name  string
+	base  Tuple
+	other Tuple
+	want  Tuple
+}
+
+func TestTuple_Add(t *testing.T) {
+	tests := []tupleOperationTest{
 		{
-			name: "point",
-			tuple: MakePoint(4.3, -4.2, 3.1),
-			want: true,
+			"vector addition",
+			MakeVector(3, -2, 5),
+			MakeVector(-2, 3, 1),
+			MakeVector(1, 1, 6),
 		},
 		{
-			name: "vector",
+			"vector point addition",
+			MakeVector(3, -2, 5),
+			MakePoint(-2, 3, 1),
+			MakePoint(1, 1, 6),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t1 *testing.T) {
+			if got := tt.base.Add(tt.other); got != tt.want {
+				t1.Errorf("Add() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestTuple_Equals(t1 *testing.T) {
+	tests := []struct {
+		name  string
+		base  Tuple
+		other Tuple
+		want  bool
+	}{
+		{
+			"equal points",
+			MakePoint(1.1, -2.2, 3.3),
+			MakePoint(1.1, -2.2, 3.3),
+			true,
+		},
+		{
+			"equal vectors",
+			MakeVector(-1.1, 2.2, -3.3),
+			MakeVector(-1.1, 2.2, -3.3),
+			true,
+		},
+		{
+			"different x",
+			MakePoint(1, 0, 0),
+			MakePoint(0, 0, 0),
+			false,
+		},
+		{
+			"different y",
+			MakePoint(0, 1, 0),
+			MakePoint(0, 0, 0),
+			false,
+		},
+		{
+			"different z",
+			MakePoint(0, 0, 1),
+			MakePoint(0, 0, 0),
+			false,
+		},
+		{
+			"point and vector",
+			MakePoint(1.1, -2.2, 3.3),
+			MakeVector(1.1, -2.2, 3.3),
+			false,
+		},
+	}
+	for _, tt := range tests {
+		t1.Run(tt.name, func(t1 *testing.T) {
+			if got := tt.base.Equals(tt.other); got != tt.want {
+				t1.Errorf("Equals() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestTuple_IsPoint(t1 *testing.T) {
+	tests := []struct {
+		name  string
+		tuple Tuple
+		want  bool
+	}{
+		{
+			name:  "point",
+			tuple: MakePoint(4.3, -4.2, 3.1),
+			want:  true,
+		},
+		{
+			name:  "vector",
 			tuple: MakeVector(4.3, -4.2, 3.1),
-			want: false,
+			want:  false,
 		},
 	}
 	for _, tt := range tests {
@@ -30,25 +114,82 @@ func TestTuple_IsPoint(t1 *testing.T) {
 
 func TestTuple_IsVector(t1 *testing.T) {
 	tests := []struct {
-		name   string
+		name  string
 		tuple Tuple
-		want   bool
+		want  bool
 	}{
 		{
-			name: "point",
+			name:  "point",
 			tuple: MakePoint(4.3, -4.2, 3.1),
-			want: false,
+			want:  false,
 		},
 		{
-			name: "vector",
+			name:  "vector",
 			tuple: MakeVector(4.3, -4.2, 3.1),
-			want: true,
+			want:  true,
 		},
 	}
 	for _, tt := range tests {
 		t1.Run(tt.name, func(t1 *testing.T) {
 			if got := tt.tuple.IsVector(); got != tt.want {
 				t1.Errorf("IsVector() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestTuple_Negate(t *testing.T) {
+	tests := []struct {
+		name  string
+		tuple Tuple
+		want  Tuple
+	}{
+		{
+			name:  "negate arbitrary tuple",
+			tuple: Tuple{1, -2, 3, -4},
+			want:  Tuple{-1, 2, -3, 4},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t1 *testing.T) {
+			if got := tt.tuple.Negate(); got != tt.want {
+				t1.Errorf("Negate() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestTuple_Subtract(t *testing.T) {
+	tests := []tupleOperationTest{
+		{
+			"point subtraction",
+			MakePoint(3, 2, 1),
+			MakePoint(5, 6, 7),
+			MakeVector(-2, -4, -6),
+		},
+		{
+			"subtract vector from point",
+			MakePoint(3, 2, 1),
+			MakeVector(5, 6, 7),
+			MakePoint(-2, -4, -6),
+		},
+		{
+			"vector subtraction",
+			MakeVector(3, 2, 1),
+			MakeVector(5, 6, 7),
+			MakeVector(-2, -4, -6),
+		},
+		{
+			"vector subtraction from 0",
+			MakeVector(0, 0, 0),
+			MakeVector(1, -2, 3),
+			MakeVector(-1, 2, -3),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t1 *testing.T) {
+			if got := tt.base.Subtract(tt.other); got != tt.want {
+				t1.Errorf("Subtract() = %v, want %v", got, tt.want)
 			}
 		})
 	}
