@@ -4,7 +4,7 @@ type Tuple struct {
 	X float64
 	Y float64
 	Z float64
-	W int8
+	W float64
 }
 
 // Add a tuple to the instance and return the result. Note that the sum of two
@@ -19,11 +19,17 @@ func (t Tuple) Add(other Tuple) Tuple {
 	}
 }
 
+// Divide the tuple by the provided factor and return the result. This is
+// equivalent to dividing all the tuple's components by the factor.
+func (t Tuple) Divide(scale float64) Tuple {
+	return Tuple{t.X / scale, t.Y / scale, t.Z / scale, t.W / scale}
+}
+
 func (t Tuple) Equals(other Tuple) bool {
 	return Float64Equal(t.X, other.X) &&
 		Float64Equal(t.Y, other.Y) &&
 		Float64Equal(t.Z, other.Z) &&
-		t.W == other.W
+		Float64Equal(t.W, other.W)
 }
 
 func (t Tuple) IsPoint() bool {
@@ -32,6 +38,12 @@ func (t Tuple) IsPoint() bool {
 
 func (t Tuple) IsVector() bool {
 	return t.W == 0
+}
+
+// Multiply the tuple by the provided factor and return the result. This is
+// equivalent to multiplying all the tuple's components by the factor.
+func (t Tuple) Multiply(scale float64) Tuple {
+	return Tuple{t.X * scale, t.Y * scale, t.Z * scale, t.W * scale}
 }
 
 // Negate a tuple and return the result. This is equivalent to subtracting the

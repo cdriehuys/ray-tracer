@@ -33,6 +33,29 @@ func TestTuple_Add(t *testing.T) {
 	}
 }
 
+func TestTuple_Divide(t *testing.T) {
+	tests := []struct {
+		name  string
+		tuple Tuple
+		scale float64
+		want  Tuple
+	}{
+		{
+			name:  "divide by scalar",
+			tuple: Tuple{1, -2, 3, -4},
+			scale: 2,
+			want:  Tuple{0.5, -1, 1.5, -2},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t1 *testing.T) {
+			if got := tt.tuple.Divide(tt.scale); got != tt.want {
+				t1.Errorf("Divide() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestTuple_Equals(t1 *testing.T) {
 	tests := []struct {
 		name  string
@@ -133,6 +156,35 @@ func TestTuple_IsVector(t1 *testing.T) {
 		t1.Run(tt.name, func(t1 *testing.T) {
 			if got := tt.tuple.IsVector(); got != tt.want {
 				t1.Errorf("IsVector() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestTuple_Multiply(t *testing.T) {
+	tests := []struct {
+		name  string
+		tuple Tuple
+		scale float64
+		want  Tuple
+	}{
+		{
+			name:  "multiply by scalar",
+			tuple: Tuple{1, -2, 3, -4},
+			scale: 3.5,
+			want:  Tuple{3.5, -7, 10.5, -14},
+		},
+		{
+			name:  "multiply by fraction",
+			tuple: Tuple{1, -2, 3, -4},
+			scale: 0.5,
+			want:  Tuple{0.5, -1, 1.5, -2},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t1 *testing.T) {
+			if got := tt.tuple.Multiply(tt.scale); got != tt.want {
+				t1.Errorf("Multiply() = %v, want %v", got, tt.want)
 			}
 		})
 	}
