@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"math"
+	"testing"
+)
 
 type tupleOperationTest struct {
 	name  string
@@ -33,6 +36,30 @@ func TestTuple_Add(t *testing.T) {
 	}
 }
 
+func TestTuple_Cross(t *testing.T) {
+	tests := []tupleOperationTest{
+		{
+			"A x B",
+			MakeVector(1, 2, 3),
+			MakeVector(2, 3, 4),
+			MakeVector(-1, 2, -1),
+		},
+		{
+			"B x A",
+			MakeVector(2, 3, 4),
+			MakeVector(1, 2, 3),
+			MakeVector(1, -2, 1),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t1 *testing.T) {
+			if got := tt.base.Cross(tt.other); got != tt.want {
+				t1.Errorf("Cross() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestTuple_Divide(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -51,6 +78,29 @@ func TestTuple_Divide(t *testing.T) {
 		t.Run(tt.name, func(t1 *testing.T) {
 			if got := tt.tuple.Divide(tt.scale); got != tt.want {
 				t1.Errorf("Divide() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestTuple_Dot(t *testing.T) {
+	tests := []struct {
+		name  string
+		base  Tuple
+		other Tuple
+		want  float64
+	}{
+		{
+			name:  "dot product",
+			base:  MakeVector(1, 2, 3),
+			other: MakeVector(2, 3, 4),
+			want:  20,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t1 *testing.T) {
+			if got := tt.base.Dot(tt.other); got != tt.want {
+				t1.Errorf("Dot() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -161,6 +211,47 @@ func TestTuple_IsVector(t1 *testing.T) {
 	}
 }
 
+func TestTuple_Magnitude(t *testing.T) {
+	tests := []struct {
+		name  string
+		tuple Tuple
+		want  float64
+	}{
+		{
+			name:  "magnitude of x unit vector",
+			tuple: MakeVector(1, 0, 0),
+			want:  1,
+		},
+		{
+			name:  "magnitude of y unit vector",
+			tuple: MakeVector(0, 1, 0),
+			want:  1,
+		},
+		{
+			name:  "magnitude of z unit vector",
+			tuple: MakeVector(0, 0, 1),
+			want:  1,
+		},
+		{
+			name:  "magnitude of arbitrary vector",
+			tuple: MakeVector(1, 2, 3),
+			want:  math.Sqrt(14),
+		},
+		{
+			name:  "magnitude of arbitrary negative vector",
+			tuple: MakeVector(-1, -2, -3),
+			want:  math.Sqrt(14),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t1 *testing.T) {
+			if got := tt.tuple.Magnitude(); got != tt.want {
+				t1.Errorf("Magnitude() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestTuple_Multiply(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -206,6 +297,42 @@ func TestTuple_Negate(t *testing.T) {
 		t.Run(tt.name, func(t1 *testing.T) {
 			if got := tt.tuple.Negate(); got != tt.want {
 				t1.Errorf("Negate() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestTuple_Normalized(t *testing.T) {
+	tests := []struct {
+		name  string
+		tuple Tuple
+		want  Tuple
+	}{
+		{
+			name:  "single axis vector",
+			tuple: MakeVector(4, 0, 0),
+			want:  MakeVector(1, 0, 0),
+		},
+		{
+			name:  "arbitrary vector",
+			tuple: MakeVector(1, 2, 3),
+			want: MakeVector(
+				1/math.Sqrt(14), 2/math.Sqrt(14), 3/math.Sqrt(14),
+			),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t1 *testing.T) {
+			got := tt.tuple.Normalized()
+			if got != tt.want {
+				t1.Errorf("Normalized() = %v, want %v", got, tt.want)
+			}
+
+			if !Float64Equal(got.Magnitude(), 1) {
+				t1.Errorf(
+					"Length of normalized vector = %v, want 1",
+					got.Magnitude(),
+				)
 			}
 		})
 	}

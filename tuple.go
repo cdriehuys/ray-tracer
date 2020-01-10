@@ -1,5 +1,7 @@
 package main
 
+import "math"
+
 type Tuple struct {
 	X float64
 	Y float64
@@ -19,10 +21,27 @@ func (t Tuple) Add(other Tuple) Tuple {
 	}
 }
 
+// Find the cross product of this tuple and another.
+func (t Tuple) Cross(other Tuple) Tuple {
+	return MakeVector(
+		t.Y*other.Z-t.Z*other.Y,
+		t.Z*other.X-t.X*other.Z,
+		t.X*other.Y-t.Y*other.X,
+	)
+}
+
 // Divide the tuple by the provided factor and return the result. This is
 // equivalent to dividing all the tuple's components by the factor.
 func (t Tuple) Divide(scale float64) Tuple {
 	return Tuple{t.X / scale, t.Y / scale, t.Z / scale, t.W / scale}
+}
+
+// Compute the dot product of two tuples.
+func (t Tuple) Dot(other Tuple) float64 {
+	return t.X*other.X +
+		t.Y*other.Y +
+		t.Z*other.Z +
+		t.W*other.W
 }
 
 func (t Tuple) Equals(other Tuple) bool {
@@ -40,6 +59,11 @@ func (t Tuple) IsVector() bool {
 	return t.W == 0
 }
 
+// Get the total distance represented by a vector.
+func (t Tuple) Magnitude() float64 {
+	return math.Sqrt(t.X*t.X + t.Y*t.Y + t.Z*t.Z)
+}
+
 // Multiply the tuple by the provided factor and return the result. This is
 // equivalent to multiplying all the tuple's components by the factor.
 func (t Tuple) Multiply(scale float64) Tuple {
@@ -50,6 +74,19 @@ func (t Tuple) Multiply(scale float64) Tuple {
 // tuple from the zero vector.
 func (t Tuple) Negate() Tuple {
 	return Tuple{-t.X, -t.Y, -t.Z, -t.W}
+}
+
+// Get the normalized version of a tuple. The normalized tuple maintains the
+// ratio of the tuple's components to each other but has a magnitude of 1.
+func (t Tuple) Normalized() Tuple {
+	magnitude := t.Magnitude()
+
+	return Tuple{
+		t.X / magnitude,
+		t.Y / magnitude,
+		t.Z / magnitude,
+		t.W / magnitude,
+	}
 }
 
 // Subtract a tuple from the instance and return the result. Note that
