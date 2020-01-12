@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"log"
 	"math"
 	"os"
@@ -87,8 +88,18 @@ func writeCanvasToFile(canvas Canvas, filePath string) {
 		log.Printf("Closed file '%s'", filePath)
 	}()
 
+	// Buffer writes to the file to increase performance. Otherwise each
+	// incremental write is done straight to disk and kills performance. This
+	// reduced write times from ~5 sec to < 1 sec.
+	fileWriter := bufio.NewWriter(file)
+	defer func() {
+		if err := fileWriter.Flush(); err != nil {
+			log.Fatalf("Error flushing file writer: %v", err)
+		}
+	}()
+
 	log.Println("Writing canvas to PPM...")
-	if err := WriteCanvasToPPM(canvas, file); err != nil {
+	if err := WriteCanvasToPPM(canvas, fileWriter); err != nil {
 		log.Fatalf("Error writing PPM to '%s': %v", filePath, err)
 	}
 	log.Println("Finished writing canvas to PPM.")
