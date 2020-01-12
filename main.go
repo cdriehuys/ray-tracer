@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"math"
 	"os"
 )
 
@@ -17,8 +17,12 @@ type environment struct {
 }
 
 func main() {
-	proj := projectile{MakePoint(0, 1, 0), MakeVector(0, 10, 0)}
-	env := environment{MakeVector(0, -0.1, 0), MakeVector(-0.01, 0, 0)}
+	canvas := MakeCanvas(900, 550)
+
+	start := MakePoint(0, 1, 0)
+	velocity := MakeVector(1, 1.8, 0).Normalized().Multiply(11.25)
+	proj := projectile{start, velocity}
+	env := environment{MakeVector(0, -0.1, 0), MakeVector(-0.02, 0, 0)}
 	tickCount := 0
 	summarize(tickCount, proj)
 
@@ -26,33 +30,10 @@ func main() {
 		proj = tick(env, proj)
 		tickCount += 1
 		summarize(tickCount, proj)
+		recordProjectileLocation(&canvas, proj)
 	}
 
-	canvas := MakeCanvas(600, 900)
-
-	for x := 275; x <= 325; x++ {
-		for y := 425; y <= 475; y++ {
-			canvas.SetPixel(x, y, MakeColor(1, 0, 0))
-		}
-	}
-
-	file, err := os.Create("output.ppm")
-	if err != nil {
-		log.Fatalf("Failed to open 'output.ppm': %v", err)
-	}
-
-	defer func() {
-		if err := file.Close(); err != nil {
-			log.Fatalf("Failed to close 'output.ppm': %v", err)
-		}
-	}()
-
-	log.Println("Writing PPM image to file.")
-	ppm := Pixmap{canvas, file}
-	if err := ppm.Write(); err != nil {
-		log.Fatalf("Failed to write PPM file: %v", err)
-	}
-	log.Println("Finished writing PPM image.")
+	writeCanvasToFile(canvas, "output.ppm")
 }
 
 func tick(env environment, proj projectile) projectile {
@@ -63,7 +44,7 @@ func tick(env environment, proj projectile) projectile {
 }
 
 func summarize(tickCount int, proj projectile) {
-	fmt.Printf(
+	log.Printf(
 		"[%5d] Projectile at (%3.2f, %3.2f, %3.2f); Velocity (%3.2f, %3.2f, %3.2f)\n",
 		tickCount,
 		proj.Position.X,
@@ -73,4 +54,43 @@ func summarize(tickCount int, proj projectile) {
 		proj.Velocity.Y,
 		proj.Velocity.Z,
 	)
+}
+
+func recordProjectileLocation(canvas *Canvas, proj projectile) {
+	color := MakeColor(1, 0, 0)
+	width := 1
+
+	x := int(math.Round(proj.Position.X))
+	y := int(math.Round(float64(canvas.Height) - 1 - proj.Position.Y))
+
+	for xDraw := x - width; xDraw < x+width; xDraw++ {
+		for yDraw := y - width; yDraw < y+width; yDraw++ {
+			if xDraw >= 0 && xDraw < canvas.Width && yDraw >= 0 && yDraw < canvas.Height {
+				canvas.SetPixel(xDraw, yDraw, color)
+			}
+		}
+	}
+}
+
+func writeCanvasToFile(canvas Canvas, filePath string) {
+	file, err := os.Create(filePath)
+	if err != nil {
+		log.Fatalf("Failed to create '%s': %v", filePath, err)
+	}
+	log.Printf("Created output file '%s'", filePath)
+
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.Fatalf("Error closing '%s': %v", filePath, err)
+		}
+
+		log.Printf("Closed file '%s'", filePath)
+	}()
+
+	log.Println("Writing canvas to PPM...")
+	ppm := Pixmap{canvas, file}
+	if err := ppm.Write(); err != nil {
+		log.Fatalf("Error writing PPM to '%s': %v", filePath, err)
+	}
+	log.Println("Finished writing canvas to PPM.")
 }
