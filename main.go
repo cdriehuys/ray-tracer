@@ -88,8 +88,7 @@ func writeCanvasToFile(canvas Canvas, filePath string) {
 	}()
 
 	log.Println("Writing canvas to PPM...")
-	ppm := Pixmap{canvas, file}
-	if err := ppm.Write(); err != nil {
+	if err := WriteCanvasToPPM(canvas, file); err != nil {
 		log.Fatalf("Error writing PPM to '%s': %v", filePath, err)
 	}
 	log.Println("Finished writing canvas to PPM.")

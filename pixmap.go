@@ -13,31 +13,28 @@ const (
 	PPMMaxLineLength = 70
 )
 
-type Pixmap struct {
-	Source Canvas
-	Dest   io.Writer
-}
-
-// Write the Pixmap's contents to its writer.
-func (p *Pixmap) Write() error {
-	if err := p.writeHeader(); err != nil {
+// Write the contents of a canvas in PPM format.
+func WriteCanvasToPPM(canvas Canvas, dest io.Writer) error {
+	if err := writePPMHeader(canvas, dest); err != nil {
 		return fmt.Errorf("failed to write PPM header: %w", err)
 	}
 
-	if err := p.writeBody(); err != nil {
+	if err := writePPMBody(canvas, dest); err != nil {
 		return fmt.Errorf("failed to write PPM body: %w", err)
 	}
 
 	return nil
 }
 
-// Write the individual pixel data to the Pixmap's writer.
-func (p *Pixmap) writeBody() error {
-	for y := 0; y < p.Source.Height; y++ {
+// Write the individual pixel data to a destination. Each pixel from the source
+// canvas is scaled so that the RGB values are integers in the PPM's color range
+// rather than floats in the range [0, 1].
+func writePPMBody(source Canvas, dest io.Writer) error {
+	for y := 0; y < source.Height; y++ {
 		lineLength := 0
 
-		for x := 0; x < p.Source.Width; x++ {
-			color := p.Source.GetPixel(x, y)
+		for x := 0; x < source.Width; x++ {
+			color := source.GetPixel(x, y)
 
 			for _, value := range []float64{color.Red(), color.Green(), color.Blue()} {
 				valueString := strconv.Itoa(scaleToPPMValue(value))
@@ -50,7 +47,7 @@ func (p *Pixmap) writeBody() error {
 				// If writing the value is going to exceed the max line length,
 				// start a new line before writing the value.
 				if lineLength+valueLength > PPMMaxLineLength {
-					_, err := p.Dest.Write([]byte("\n"))
+					_, err := dest.Write([]byte("\n"))
 					if err != nil {
 						return err
 					}
@@ -61,7 +58,7 @@ func (p *Pixmap) writeBody() error {
 				// If there is already a value on the line, we want to write a
 				// separator before the value.
 				if lineLength != 0 {
-					_, err := p.Dest.Write([]byte(" "))
+					_, err := dest.Write([]byte(" "))
 					if err != nil {
 						return err
 					}
@@ -69,7 +66,7 @@ func (p *Pixmap) writeBody() error {
 					lineLength += 1
 				}
 
-				_, err := p.Dest.Write([]byte(valueString))
+				_, err := dest.Write([]byte(valueString))
 				if err != nil {
 					return err
 				}
@@ -78,7 +75,7 @@ func (p *Pixmap) writeBody() error {
 			}
 		}
 
-		_, err := p.Dest.Write([]byte("\n"))
+		_, err := dest.Write([]byte("\n"))
 		if err != nil {
 			return err
 		}
@@ -87,20 +84,19 @@ func (p *Pixmap) writeBody() error {
 	return nil
 }
 
-// Write the header of the PPM file to the Pixmap's writer. The header includes
-// the PPM version string, the dimensions of the image, and the maximum color
-// value.
-func (p *Pixmap) writeHeader() error {
+// Write the header of the PPM file. The header includes the PPM version string,
+// the dimensions of the image, and the maximum color value.
+func writePPMHeader(canvas Canvas, dest io.Writer) error {
 	contents := PPMVersion +
 		"\n" +
-		strconv.Itoa(p.Source.Width) +
+		strconv.Itoa(canvas.Width) +
 		" " +
-		strconv.Itoa(p.Source.Height) +
+		strconv.Itoa(canvas.Height) +
 		"\n" +
 		strconv.Itoa(PPMMaxColorValue) +
 		"\n"
 
-	_, err := p.Dest.Write([]byte(contents))
+	_, err := dest.Write([]byte(contents))
 
 	return err
 }

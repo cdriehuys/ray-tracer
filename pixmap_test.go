@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestPixmap_Write(t *testing.T) {
+func TestWriteCanvasToPPM(t *testing.T) {
 	var writer strings.Builder
 	source := MakeCanvas(5, 10)
 	source.SetPixel(2, 4, MakeColor(1, 0, 0))
@@ -13,31 +13,29 @@ func TestPixmap_Write(t *testing.T) {
 	source.SetPixel(1, 8, MakeColor(0, 0, 1))
 
 	var expectedWriter strings.Builder
-	expectedPPM := Pixmap{source, &expectedWriter}
 
-	if err := expectedPPM.writeHeader(); err != nil {
-		t.Errorf("writeHeader() returned error: %v", err)
+	if err := writePPMHeader(source, &expectedWriter); err != nil {
+		t.Errorf("writePPMHeader() returned error: %v", err)
 	}
 
-	if err := expectedPPM.writeBody(); err != nil {
-		t.Errorf("writeHeader() returned error: %v", err)
+	if err := writePPMBody(source, &expectedWriter); err != nil {
+		t.Errorf("writePPMBody() returned error: %v", err)
 	}
 
 	expected := expectedWriter.String()
 
-	ppm := Pixmap{source, &writer}
-	err := ppm.Write()
+	err := WriteCanvasToPPM(source, &writer)
 
 	if err != nil {
-		t.Errorf("Write() returned error: %v", err)
+		t.Errorf("WriteCanvasToPPM() returned error: %v", err)
 	}
 
-	if writer.String() != expected {
-		t.Errorf("Expected contents to be:\n%v\nGot:\n%v", expected, writer.String())
+	if got := writer.String(); got != expected {
+		t.Errorf("Expected contents to be:\n%v\nGot:\n%v", expected, got)
 	}
 }
 
-func TestPixmap_writeBody(t *testing.T) {
+func TestWritePPMBody(t *testing.T) {
 	var writer strings.Builder
 	source := MakeCanvas(5, 3)
 	source.SetPixel(0, 0, MakeColor(1.5, 0, 0))
@@ -50,11 +48,10 @@ func TestPixmap_writeBody(t *testing.T) {
 0 0 0 0 0 0 0 0 0 0 0 0 0 0 255
 `
 
-	ppm := Pixmap{source, &writer}
-	err := ppm.writeBody()
+	err := writePPMBody(source, &writer)
 
 	if err != nil {
-		t.Errorf("writeBody() returned error: %v", err)
+		t.Errorf("writePPMBody() returned error: %v", err)
 	}
 
 	if got := writer.String(); got != expected {
@@ -63,7 +60,7 @@ func TestPixmap_writeBody(t *testing.T) {
 }
 
 // No line should exceed 70 characters
-func TestPixmap_writeBody_longLines(t *testing.T) {
+func TestWritePPMBody_LongLines(t *testing.T) {
 	var writer strings.Builder
 
 	color := MakeColor(1, .8, .6)
@@ -80,11 +77,10 @@ func TestPixmap_writeBody_longLines(t *testing.T) {
 153 255 204 153 255 204 153 255 204 153 255 204 153
 `
 
-	ppm := Pixmap{source, &writer}
-	err := ppm.writeBody()
+	err := writePPMBody(source, &writer)
 
 	if err != nil {
-		t.Errorf("writeBody() returned error: %v", err)
+		t.Errorf("writePPMBody() returned error: %v", err)
 	}
 
 	if got := writer.String(); got != expected {
@@ -92,16 +88,15 @@ func TestPixmap_writeBody_longLines(t *testing.T) {
 	}
 }
 
-func TestPixmap_writeHeader(t *testing.T) {
+func TestWritePPMHeader(t *testing.T) {
 	var writer strings.Builder
 	source := MakeCanvas(4, 3)
 	expected := "P3\n4 3\n255\n"
 
-	ppm := Pixmap{source, &writer}
-	err := ppm.writeHeader()
+	err := writePPMHeader(source, &writer)
 
 	if err != nil {
-		t.Errorf("writeHeader() returned error: %v", err)
+		t.Errorf("writePPMHeader() returned error: %v", err)
 	}
 
 	if got := writer.String(); got != expected {
