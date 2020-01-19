@@ -16,3 +16,6 @@
 
 # Output Images
 *.ppm
+
+# IntelliJ Files
+.idea/**/dictionaries
