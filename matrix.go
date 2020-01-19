@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 // A square matrix, ie a 2D grid of numbers. Matrices are addressed in row-major
 // order, eg matrix[1, 2] is the value at the 1st row in the 2nd column (with
 // 0-based indexing).
@@ -99,6 +101,34 @@ func (m Matrix) Equals(other Matrix) bool {
 	}
 
 	return true
+}
+
+func (m Matrix) Inverted() Matrix {
+	if !m.IsInvertible() {
+		panic(fmt.Sprintf("Tried to invert non-invertible matrix: %v", m))
+	}
+
+	determinant := m.Determinant()
+	inverse := Matrix{
+		Size:  m.Size,
+		store: make([]float64, m.Size*m.Size),
+	}
+	for row := 0; row < m.Size; row++ {
+		for col := 0; col < m.Size; col++ {
+			cofactor := m.Cofactor(row, col)
+
+			// We swap the row and column here to effectively transpose the
+			// inverse without an explicit step.
+			inverse.Set(col, row, cofactor/determinant)
+		}
+	}
+
+	return inverse
+}
+
+// Determine if a matrix is invertible.
+func (m Matrix) IsInvertible() bool {
+	return !Float64Equal(m.Determinant(), 0)
 }
 
 // Find the minor of a matrix which is defined as the determinant of its
