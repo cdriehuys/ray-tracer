@@ -7,70 +7,35 @@ import (
 	"os"
 )
 
-type projectile struct {
-	Position Tuple
-	Velocity Tuple
-}
-
-type environment struct {
-	Gravity Tuple
-	Wind    Tuple
-}
-
 func main() {
-	canvas := MakeCanvas(900, 550)
+	canvas := MakeCanvas(1000, 1000)
+	radius := 400.0
 
-	start := MakePoint(0, 1, 0)
-	velocity := MakeVector(1, 1.8, 0).Normalized().Multiply(11.25)
-	proj := projectile{start, velocity}
-	env := environment{MakeVector(0, -0.1, 0), MakeVector(-0.02, 0, 0)}
-	tickCount := 0
-	summarize(tickCount, proj)
+	centerTranslate := MakeTranslation(float64(canvas.Width)/2, float64(canvas.Height)/2, 0)
 
-	for proj.Position.Y >= 0 {
-		proj = tick(env, proj)
-		tickCount += 1
-		summarize(tickCount, proj)
-		recordProjectileLocation(&canvas, proj)
-	}
+	for i := 0; i < 60; i++ {
+		point := MakePoint(0, radius, 0)
+		rotation := MakeZRotation(2 * math.Pi / 60 * float64(i))
+		point = centerTranslate.Multiply(rotation).TupleMultiply(point)
 
-	writeCanvasToFile(canvas, "output.ppm")
-}
+		xOrigin := int(math.Round(point.X))
+		yOrigin := int(math.Round(point.Y))
 
-func tick(env environment, proj projectile) projectile {
-	return projectile{
-		Position: proj.Position.Add(proj.Velocity),
-		Velocity: proj.Velocity.Add(env.Gravity).Add(env.Wind),
-	}
-}
+		tickColor := MakeColor(.8, .8, .8)
+		tickRadius := 1
+		if i%5 == 0 {
+			tickColor = MakeColor(.75, 0, 0)
+			tickRadius = 2
+		}
 
-func summarize(tickCount int, proj projectile) {
-	log.Printf(
-		"[%5d] Projectile at (%3.2f, %3.2f, %3.2f); Velocity (%3.2f, %3.2f, %3.2f)\n",
-		tickCount,
-		proj.Position.X,
-		proj.Position.Y,
-		proj.Position.Z,
-		proj.Velocity.X,
-		proj.Velocity.Y,
-		proj.Velocity.Z,
-	)
-}
-
-func recordProjectileLocation(canvas *Canvas, proj projectile) {
-	color := MakeColor(1, 0, 0)
-	width := 1
-
-	x := int(math.Round(proj.Position.X))
-	y := int(math.Round(float64(canvas.Height) - 1 - proj.Position.Y))
-
-	for xDraw := x - width; xDraw < x+width; xDraw++ {
-		for yDraw := y - width; yDraw < y+width; yDraw++ {
-			if xDraw >= 0 && xDraw < canvas.Width && yDraw >= 0 && yDraw < canvas.Height {
-				canvas.SetPixel(xDraw, yDraw, color)
+		for x := xOrigin - tickRadius; x < xOrigin+tickRadius; x++ {
+			for y := yOrigin - tickRadius; y < yOrigin+tickRadius; y++ {
+				canvas.SetPixel(x, y, tickColor)
 			}
 		}
 	}
+
+	writeCanvasToFile(canvas, "output.ppm")
 }
 
 func writeCanvasToFile(canvas Canvas, filePath string) {
