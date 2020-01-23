@@ -10,32 +10,44 @@ func TestSphere_Intersect(t *testing.T) {
 	testCases := []struct {
 		name string
 		ray  Ray
-		want []float64
+		want Intersections
 	}{
 		{
 			"intersects at two points",
 			MakeRay(MakePoint(0, 0, -5), MakeVector(0, 0, 1)),
-			[]float64{4.0, 6.0},
+			Intersections{
+				MakeIntersection(4, sphere),
+				MakeIntersection(6, sphere),
+			},
 		},
 		{
 			"intersects at tangent",
 			MakeRay(MakePoint(0, 1, -5), MakeVector(0, 0, 1)),
-			[]float64{5.0, 5.0},
+			Intersections{
+				MakeIntersection(5, sphere),
+				MakeIntersection(5, sphere),
+			},
 		},
 		{
 			"miss",
 			MakeRay(MakePoint(0, 2, -5), MakeVector(0, 0, 1)),
-			[]float64{},
+			Intersections{},
 		},
 		{
 			"ray inside sphere",
 			MakeRay(MakePoint(0, 0, 0), MakeVector(0, 0, 1)),
-			[]float64{-1.0, 1.0},
+			Intersections{
+				MakeIntersection(-1, sphere),
+				MakeIntersection(1, sphere),
+			},
 		},
 		{
 			"sphere behind ray",
 			MakeRay(MakePoint(0, 0, 5), MakeVector(0, 0, 1)),
-			[]float64{-6.0, -4.0},
+			Intersections{
+				MakeIntersection(-6, sphere),
+				MakeIntersection(-4, sphere),
+			},
 		},
 	}
 	for _, tt := range testCases {

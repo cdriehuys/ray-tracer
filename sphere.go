@@ -4,7 +4,9 @@ import "math"
 
 type Sphere struct{}
 
-func (s Sphere) Intersect(ray Ray) []float64 {
+// Get the values of t at which the given ray intersects the sphere.
+func (s Sphere) Intersect(ray Ray) Intersections {
+	// Assume the sphere is at the origin.
 	sphereToRay := ray.Origin.Subtract(MakePoint(0, 0, 0))
 
 	a := ray.Direction.Dot(ray.Direction)
@@ -14,12 +16,15 @@ func (s Sphere) Intersect(ray Ray) []float64 {
 	discriminant := (b * b) - (4 * a * c)
 
 	if discriminant < 0 {
-		return []float64{}
+		return Intersections{}
 	}
 
 	discriminantRoot := math.Sqrt(discriminant)
 	t1 := (-b - discriminantRoot) / (2 * a)
 	t2 := (-b + discriminantRoot) / (2 * a)
 
-	return []float64{t1, t2}
+	return Intersections{
+		MakeIntersection(t1, s),
+		MakeIntersection(t2, s),
+	}
 }
