@@ -2,10 +2,27 @@ package main
 
 import "math"
 
-type Sphere struct{}
+type Sphere struct {
+	Transform Matrix
+}
+
+func MakeSphere() Sphere {
+	return Sphere{
+		Transform: IdentityMatrix4,
+	}
+}
+
+func MakeSphereTransformed(transform Matrix) Sphere {
+	return Sphere{
+		Transform: transform,
+	}
+}
 
 // Get the values of t at which the given ray intersects the sphere.
 func (s Sphere) Intersect(ray Ray) Intersections {
+	// Apply the sphere's transformations by applying their inverse to the ray.
+	ray = ray.Transform(s.Transform.Inverted())
+
 	// Assume the sphere is at the origin.
 	sphereToRay := ray.Origin.Subtract(MakePoint(0, 0, 0))
 

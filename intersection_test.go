@@ -74,7 +74,7 @@ func TestIntersections_Hit(t *testing.T) {
 				t.Errorf("Exists is false but hit is non-empty: %v", got)
 			}
 
-			if !tt.wantNothing && got != tt.want {
+			if !tt.wantNothing && !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Expected hit to be %v, got %v", tt.want, got)
 			}
 		})
