@@ -1,9 +1,12 @@
 package main
 
 import (
+	"math"
 	"reflect"
 	"testing"
 )
+
+var sqrt3 = math.Sqrt(3)
 
 func TestMakeSphere(t *testing.T) {
 	sphere := MakeSphere()
@@ -82,6 +85,70 @@ func TestSphere_Intersect(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.sphere.Intersect(tt.ray); !reflect.DeepEqual(got, wantIntersections) {
 				t.Errorf("Intersect did not produce expected results:\nExpected: %v\nReceived: %v", wantIntersections, got)
+			}
+		})
+	}
+}
+
+func TestSphere_NormalAt(t *testing.T) {
+	testCases := []struct {
+		name   string
+		sphere Sphere
+		point  Tuple
+		want   Tuple
+	}{
+		{
+			"x-axis",
+			MakeSphere(),
+			MakePoint(1, 0, 0),
+			MakeVector(1, 0, 0),
+		},
+		{
+			"y-axis",
+			MakeSphere(),
+			MakePoint(0, 1, 0),
+			MakeVector(0, 1, 0),
+		},
+		{
+			"z-axis",
+			MakeSphere(),
+			MakePoint(0, 0, 1),
+			MakeVector(0, 0, 1),
+		},
+		{
+			"nonaxial point",
+			MakeSphere(),
+			MakePoint(sqrt3/3, sqrt3/3, sqrt3/3),
+			MakeVector(sqrt3/3, sqrt3/3, sqrt3/3),
+		},
+		{
+			"translated sphere",
+			MakeSphereTransformed(MakeTranslation(0, 1, 0)),
+			MakePoint(0, 1.70711, -0.70711),
+			MakeVector(0, 0.70711, -0.70711),
+		},
+		{
+			"transformed sphere",
+			MakeSphereTransformed(
+				MakeScale(1, 0.5, 1).Multiply(MakeZRotation(math.Pi / 5)),
+			),
+			MakePoint(0, math.Sqrt2/2, -math.Sqrt2/2),
+			MakeVector(0, 0.97014, -0.24254),
+		},
+	}
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			normal := tt.sphere.NormalAt(tt.point)
+			if !normal.Equals(tt.want) {
+				t.Errorf("Expected normal to be %v, got %v", tt.want, normal)
+			}
+
+			if !normal.Equals(normal.Normalized()) {
+				t.Errorf(
+					"Expected normal to be normalized but it was %v (magitude %v)",
+					normal,
+					normal.Magnitude(),
+				)
 			}
 		})
 	}

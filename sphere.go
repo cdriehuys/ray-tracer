@@ -45,3 +45,20 @@ func (s Sphere) Intersect(ray Ray) Intersections {
 		MakeIntersection(t2, s),
 	}
 }
+
+// Get the normal vector at a point on the surface of a sphere. This point is
+// given in world space (as opposed to object space).
+func (s Sphere) NormalAt(worldPoint Tuple) Tuple {
+	objectPoint := s.Transform.Inverted().TupleMultiply(worldPoint)
+	// We're subtracting the origin of the sphere, which is always the origin in
+	// object space.
+	objectNormal := objectPoint.Subtract(MakePoint(0, 0, 0))
+	worldNormal := s.Transform.Inverted().Transposed().TupleMultiply(objectNormal)
+	// Since we should have ignored the 4th row and column of the matrix in the
+	// computation above, the 4th row (which includes w for our tuple) may have
+	// been messed with. To compensate for this, we manually set w to 0, which
+	// represents a vector.
+	worldNormal.W = 0
+
+	return worldNormal.Normalized()
+}
