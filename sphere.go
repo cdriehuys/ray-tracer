@@ -3,11 +3,13 @@ package main
 import "math"
 
 type Sphere struct {
+	Material  Material
 	Transform Matrix
 }
 
 func MakeSphere() Sphere {
 	return Sphere{
+		Material:  MakeMaterial(),
 		Transform: IdentityMatrix4,
 	}
 }

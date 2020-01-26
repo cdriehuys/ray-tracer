@@ -11,6 +11,10 @@ var sqrt3 = math.Sqrt(3)
 func TestMakeSphere(t *testing.T) {
 	sphere := MakeSphere()
 
+	if got := sphere.Material; !reflect.DeepEqual(got, MakeMaterial()) {
+		t.Errorf("Expected sphere to have default material, got %v", got)
+	}
+
 	if got := sphere.Transform; !got.Equals(IdentityMatrix4) {
 		t.Errorf("Expected default transform to be the identity matrix, got %v", got)
 	}
