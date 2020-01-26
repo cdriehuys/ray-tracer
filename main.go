@@ -3,34 +3,42 @@ package main
 import (
 	"bufio"
 	"log"
-	"math"
 	"os"
 )
 
 func main() {
-	canvas := MakeCanvas(1000, 1000)
-	radius := 400.0
+	canvasSize := 1000
+	canvas := MakeCanvas(canvasSize, canvasSize)
+	color := MakeColor(1, 0, 0)
+	shape := MakeSphereTransformed(
+		MakeScale(1, .75, 1),
+	)
 
-	centerTranslate := MakeTranslation(float64(canvas.Width)/2, float64(canvas.Height)/2, 0)
+	rayOrigin := MakePoint(0, 0, -5)
+	wallZ := 10
+	wallSize := 7
 
-	for i := 0; i < 60; i++ {
-		point := MakePoint(0, radius, 0)
-		rotation := MakeZRotation(2 * math.Pi / 60 * float64(i))
-		point = centerTranslate.Multiply(rotation).TupleMultiply(point)
+	pixelSize := float64(wallSize) / float64(canvasSize)
+	halfWall := float64(wallSize) / 2
 
-		xOrigin := int(math.Round(point.X))
-		yOrigin := int(math.Round(point.Y))
+	for y := 0; y < canvas.Height; y++ {
+		// We subtract Y from the max Y value of the wall since the
+		// y-coordinates of the canvas are inverted compared to the Y values in
+		// world space.
+		worldY := halfWall - pixelSize*float64(y)
+		for x := 0; x < canvas.Width; x++ {
+			worldX := -halfWall + pixelSize*float64(x)
 
-		tickColor := MakeColor(.8, .8, .8)
-		tickRadius := 1
-		if i%5 == 0 {
-			tickColor = MakeColor(.75, 0, 0)
-			tickRadius = 2
-		}
+			targetPosition := MakePoint(worldX, worldY, float64(wallZ))
 
-		for x := xOrigin - tickRadius; x < xOrigin+tickRadius; x++ {
-			for y := yOrigin - tickRadius; y < yOrigin+tickRadius; y++ {
-				canvas.SetPixel(x, y, tickColor)
+			ray := MakeRay(
+				rayOrigin,
+				targetPosition.Subtract(rayOrigin).Normalized(),
+			)
+			intersections := shape.Intersect(ray)
+
+			if _, exists := intersections.Hit(); exists {
+				canvas.SetPixel(x, y, color)
 			}
 		}
 	}
