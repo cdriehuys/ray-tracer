@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 )
 
@@ -38,6 +39,41 @@ func TestRay_Position(t *testing.T) {
 		t.Run(fmt.Sprintf("t=%v", tt.time), func(t *testing.T) {
 			if got := ray.Position(tt.time); !got.Equals(tt.want) {
 				t.Errorf("Expected position(%v) = %v, got %v", tt.time, tt.want, got)
+			}
+		})
+	}
+}
+
+func TestRay_Transform(t *testing.T) {
+	testCases := []struct {
+		name      string
+		ray       Ray
+		transform Matrix
+		want      Ray
+	}{
+		{
+			"translation",
+			MakeRay(MakePoint(1, 2, 3), MakeVector(0, 1, 0)),
+			MakeTranslation(3, 4, 5),
+			MakeRay(MakePoint(4, 6, 8), MakeVector(0, 1, 0)),
+		},
+		{
+			"scale",
+			MakeRay(MakePoint(1, 2, 3), MakeVector(0, 1, 0)),
+			MakeScale(2, 3, 4),
+			MakeRay(MakePoint(2, 6, 12), MakeVector(0, 3, 0)),
+		},
+	}
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.ray.Transform(tt.transform); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf(
+					"Expected different ray transformation:\nRay: %v\nTransform: %v\nExpected: %v\nReceived: %v",
+					tt.ray,
+					tt.transform,
+					tt.want,
+					got,
+				)
 			}
 		})
 	}
