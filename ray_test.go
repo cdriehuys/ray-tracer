@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"testing"
 )
@@ -74,6 +75,35 @@ func TestRay_Transform(t *testing.T) {
 					tt.want,
 					got,
 				)
+			}
+		})
+	}
+}
+
+func TestReflect(t *testing.T) {
+	testCases := []struct {
+		name   string
+		in     Tuple
+		normal Tuple
+		want   Tuple
+	}{
+		{
+			"45 degrees",
+			MakeVector(1, -1, 0),
+			MakeVector(0, 1, 0),
+			MakeVector(1, 1, 0),
+		},
+		{
+			"slanted surface",
+			MakeVector(0, -1, 0),
+			MakeVector(math.Sqrt2/2, math.Sqrt2/2, 0),
+			MakeVector(1, 0, 0),
+		},
+	}
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Reflect(tt.in, tt.normal); !got.Equals(tt.want) {
+				t.Errorf("Expected reflecting %v around %v to be %v, got %v", tt.in, tt.normal, tt.want, got)
 			}
 		})
 	}

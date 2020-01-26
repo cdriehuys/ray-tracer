@@ -21,3 +21,8 @@ func (r Ray) Transform(transform Matrix) Ray {
 		transform.TupleMultiply(r.Direction),
 	)
 }
+
+// Reflect a ray around a normal vector.
+func Reflect(in, normal Tuple) Tuple {
+	return in.Subtract(normal.Multiply(2 * in.Dot(normal)))
+}
