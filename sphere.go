@@ -3,19 +3,20 @@ package main
 import "math"
 
 type Sphere struct {
-	Material  Material
+	material  Material
 	Transform Matrix
 }
 
 func MakeSphere() Sphere {
 	return Sphere{
-		Material:  MakeMaterial(),
+		material:  MakeMaterial(),
 		Transform: IdentityMatrix4,
 	}
 }
 
 func MakeSphereTransformed(transform Matrix) Sphere {
 	return Sphere{
+		material:  MakeMaterial(),
 		Transform: transform,
 	}
 }
@@ -46,6 +47,11 @@ func (s Sphere) Intersect(ray Ray) Intersections {
 		MakeIntersection(t1, s),
 		MakeIntersection(t2, s),
 	}
+}
+
+// Get the material used by the sphere.
+func (s Sphere) Material() Material {
+	return s.material
 }
 
 // Get the normal vector at a point on the surface of a sphere. This point is

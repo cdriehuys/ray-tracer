@@ -7,12 +7,14 @@ import (
 )
 
 func main() {
-	canvasSize := 1000
+	canvasSize := 500
 	canvas := MakeCanvas(canvasSize, canvasSize)
-	color := MakeColor(1, 0, 0)
-	shape := MakeSphereTransformed(
-		MakeScale(1, .75, 1),
-	)
+	shape := MakeSphereTransformed(MakeShear(.25, 0, 0, 0, 0, 0))
+	shape.material.Color = MakeColor(1, 0.2, 1)
+
+	lightPosition := MakePoint(-10, 10, -10)
+	lightColor := MakeColor(1, 1, 1)
+	light := MakePointLight(lightPosition, lightColor)
 
 	rayOrigin := MakePoint(0, 0, -5)
 	wallZ := 10
@@ -37,7 +39,19 @@ func main() {
 			)
 			intersections := shape.Intersect(ray)
 
-			if _, exists := intersections.Hit(); exists {
+			if hit, exists := intersections.Hit(); exists {
+				point := ray.Position(hit.T)
+				normal := hit.Object.NormalAt(point)
+				eye := ray.Direction.Multiply(-1)
+
+				color := Lighting(
+					hit.Object.Material(),
+					light,
+					point,
+					eye,
+					normal,
+				)
+
 				canvas.SetPixel(x, y, color)
 			}
 		}

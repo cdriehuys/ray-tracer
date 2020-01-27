@@ -4,6 +4,8 @@ import "sort"
 
 type Shape interface {
 	Intersect(Ray) Intersections
+	NormalAt(point Tuple) Tuple
+	Material() Material
 }
 
 type Intersection struct {

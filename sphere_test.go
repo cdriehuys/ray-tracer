@@ -11,7 +11,7 @@ var sqrt3 = math.Sqrt(3)
 func TestMakeSphere(t *testing.T) {
 	sphere := MakeSphere()
 
-	if got := sphere.Material; !reflect.DeepEqual(got, MakeMaterial()) {
+	if got := sphere.material; !reflect.DeepEqual(got, MakeMaterial()) {
 		t.Errorf("Expected sphere to have default material, got %v", got)
 	}
 
