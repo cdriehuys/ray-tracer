@@ -25,3 +25,56 @@ func TestMakeMaterial(t *testing.T) {
 		t.Errorf("Expected default shininess value to be %v, got %v", 200.0, m.Shininess)
 	}
 }
+
+func TestMaterial_Equals(t *testing.T) {
+	testCases := []struct {
+		name      string
+		materialA Material
+		materialB Material
+		want      bool
+	}{
+		{
+			"different colors",
+			Material{Color: MakeColor(1, 1, 0)},
+			Material{Color: MakeColor(0, 0, 1)},
+			false,
+		},
+		{
+			"different ambient values",
+			Material{Ambient: 12},
+			Material{Ambient: 42},
+			false,
+		},
+		{
+			"different diffuse values",
+			Material{Diffuse: 13},
+			Material{Diffuse: 76},
+			false,
+		},
+		{
+			"different specular values",
+			Material{Specular: 7},
+			Material{Specular: 13},
+			false,
+		},
+		{
+			"different shininess values",
+			Material{Shininess: 8675309},
+			Material{Shininess: 9001},
+			false,
+		},
+		{
+			"same material",
+			MakeMaterial(),
+			MakeMaterial(),
+			true,
+		},
+	}
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.materialA.Equals(tt.materialB); got != tt.want {
+				t.Errorf("Expected equality to evaluate to %v\nExpected: %v\nReceived: %v\n", tt.want, tt.materialA, tt.materialB)
+			}
+		})
+	}
+}

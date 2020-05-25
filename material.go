@@ -17,3 +17,12 @@ func MakeMaterial() Material {
 		Shininess: 200.0,
 	}
 }
+
+// Determine if one material is equivalent to another.
+func (mat Material) Equals(other Material) bool {
+	return mat.Color.Equals(other.Color) &&
+		Float64Equal(mat.Ambient, other.Ambient) &&
+		Float64Equal(mat.Diffuse, other.Diffuse) &&
+		Float64Equal(mat.Specular, other.Specular) &&
+		Float64Equal(mat.Shininess, other.Shininess)
+}

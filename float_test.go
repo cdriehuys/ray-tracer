@@ -19,22 +19,22 @@ func TestFloat64Equal(t *testing.T) {
 		},
 		{
 			name: "y too big",
-			args: args{1.3, 1.3 + 2 * floatEpsilon},
+			args: args{1.3, 1.3 + 2*floatEpsilon},
 			want: false,
 		},
 		{
 			name: "y too small",
-			args: args{1.3, 1.3 + 2 * floatEpsilon},
+			args: args{1.3, 1.3 + 2*floatEpsilon},
 			want: false,
 		},
 		{
 			name: "y a little big",
-			args: args{1.3, 1.3 + floatEpsilon / 10},
+			args: args{1.3, 1.3 + floatEpsilon/10},
 			want: true,
 		},
 		{
 			name: "y a little small",
-			args: args{1.3, 1.3 + floatEpsilon / 10},
+			args: args{1.3, 1.3 + floatEpsilon/10},
 			want: true,
 		},
 		{

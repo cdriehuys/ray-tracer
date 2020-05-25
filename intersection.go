@@ -2,18 +2,12 @@ package main
 
 import "sort"
 
-type Shape interface {
-	Intersect(Ray) Intersections
-	NormalAt(point Tuple) Tuple
-	Material() Material
-}
-
 type Intersection struct {
 	T      float64
-	Object Shape
+	Object Object
 }
 
-func MakeIntersection(t float64, object Shape) Intersection {
+func MakeIntersection(t float64, object Object) Intersection {
 	return Intersection{t, object}
 }
 
