@@ -4,27 +4,27 @@ import "math"
 
 type Sphere struct {
 	material  Material
-	Transform Matrix
+	transform Matrix
 }
 
 func MakeSphere() Sphere {
 	return Sphere{
 		material:  MakeMaterial(),
-		Transform: IdentityMatrix4,
+		transform: IdentityMatrix4,
 	}
 }
 
 func MakeSphereTransformed(transform Matrix) Sphere {
 	return Sphere{
 		material:  MakeMaterial(),
-		Transform: transform,
+		transform: transform,
 	}
 }
 
 // Get the values of t at which the given ray intersects the sphere.
 func (s Sphere) Intersect(ray Ray) Intersections {
 	// Apply the sphere's transformations by applying their inverse to the ray.
-	ray = ray.Transform(s.Transform.Inverted())
+	ray = ray.Transform(s.transform.Inverted())
 
 	// Assume the sphere is at the origin.
 	sphereToRay := ray.Origin.Subtract(MakePoint(0, 0, 0))
@@ -57,11 +57,11 @@ func (s Sphere) Material() Material {
 // Get the normal vector at a point on the surface of a sphere. This point is
 // given in world space (as opposed to object space).
 func (s Sphere) NormalAt(worldPoint Tuple) Tuple {
-	objectPoint := s.Transform.Inverted().TupleMultiply(worldPoint)
+	objectPoint := s.transform.Inverted().TupleMultiply(worldPoint)
 	// We're subtracting the origin of the sphere, which is always the origin in
 	// object space.
 	objectNormal := objectPoint.Subtract(MakePoint(0, 0, 0))
-	worldNormal := s.Transform.Inverted().Transposed().TupleMultiply(objectNormal)
+	worldNormal := s.transform.Inverted().Transposed().TupleMultiply(objectNormal)
 	// Since we should have ignored the 4th row and column of the matrix in the
 	// computation above, the 4th row (which includes w for our tuple) may have
 	// been messed with. To compensate for this, we manually set w to 0, which
@@ -69,4 +69,9 @@ func (s Sphere) NormalAt(worldPoint Tuple) Tuple {
 	worldNormal.W = 0
 
 	return worldNormal.Normalized()
+}
+
+// Get the sphere's transformation matrix.
+func (s Sphere) Transform() Matrix {
+	return s.transform
 }

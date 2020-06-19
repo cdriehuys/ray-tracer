@@ -21,11 +21,13 @@ func TestMakeDefaultWorld(t *testing.T) {
 	expectedObjects := []Object{
 		Sphere{
 			material: Material{
-				Color:    MakeColor(0.8, 1, 0.6),
-				Diffuse:  0.7,
-				Specular: 0.2,
+				Color:     MakeColor(0.8, 1, 0.6),
+				Ambient:   0.1,
+				Diffuse:   0.7,
+				Specular:  0.2,
+				Shininess: 200,
 			},
-			Transform: IdentityMatrix4,
+			transform: IdentityMatrix4,
 		},
 		MakeSphereTransformed(MakeScale(0.5, 0.5, 0.5)),
 	}
@@ -40,12 +42,58 @@ func TestMakeDefaultWorld(t *testing.T) {
 	}
 }
 
+func TestWorld_ColorAt(t *testing.T) {
+	testCases := []struct {
+		name  string
+		world World
+		ray   Ray
+		want  Color
+	}{
+		{
+			"ray misses",
+			MakeDefaultWorld(),
+			MakeRay(MakePoint(0, 0, -5), MakeVector(0, 1, 0)),
+			MakeColor(0, 0, 0),
+		},
+		{
+			"ray hit in default world",
+			MakeDefaultWorld(),
+			MakeRay(MakePoint(0, 0, -5), MakeVector(0, 0, 1)),
+			MakeColor(0.38066, 0.47583, 0.2855),
+		},
+		{
+			"intersection behind ray",
+			func() World {
+				world := MakeDefaultWorld()
+				outer := world.Objects[0].(Sphere)
+				outer.material.Ambient = 1
+				world.Objects[0] = outer
+
+				inner := world.Objects[1].(Sphere)
+				inner.material.Ambient = 1
+				world.Objects[1] = inner
+
+				return world
+			}(),
+			MakeRay(MakePoint(0, 0, 0.75), MakeVector(0, 0, -1)),
+			MakeDefaultWorld().Objects[1].Material().Color,
+		},
+	}
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.world.ColorAt(tt.ray); !tt.want.Equals(got) {
+				t.Errorf("Expected color %v, got %v", tt.want, got)
+			}
+		})
+	}
+}
+
 func TestWorld_Intersect(t *testing.T) {
 	world := MakeDefaultWorld()
 	ray := MakeRay(MakePoint(0, 0, -5), MakeVector(0, 0, 1))
 	wantIntersections := []float64{4, 4.5, 5.5, 6}
 
-	intersections := world.Intersect(ray)
+	intersections := world.intersect(ray)
 	if got := len(intersections); got != len(wantIntersections) {
 		t.Errorf("Expected %d intersection(s); got %d", len(wantIntersections), got)
 	}
@@ -54,6 +102,44 @@ func TestWorld_Intersect(t *testing.T) {
 		if got := intersection.T; !Float64Equal(wantIntersections[i], got) {
 			t.Errorf("Expected intersection %d to have t-value %f; got %f", i, wantIntersections[i], got)
 		}
+	}
+}
+
+func TestWorld_ShadeHit(t *testing.T) {
+	defaultWorld := MakeDefaultWorld()
+
+	testCases := []struct {
+		name         string
+		light        PointLight
+		ray          Ray
+		intersection Intersection
+		want         Color
+	}{
+		{
+			"outside intersection",
+			defaultWorld.Light,
+			MakeRay(MakePoint(0, 0, -5), MakeVector(0, 0, 1)),
+			MakeIntersection(4, defaultWorld.Objects[0]),
+			MakeColor(0.38066, 0.47583, 0.2855),
+		},
+		{
+			"inside intersection",
+			MakePointLight(MakePoint(0, 0.25, 0), MakeColor(1, 1, 1)),
+			MakeRay(MakePoint(0, 0, 0), MakeVector(0, 0, 1)),
+			MakeIntersection(0.5, defaultWorld.Objects[1]),
+			MakeColor(0.90498, 0.90498, 0.90498),
+		},
+	}
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			world := MakeDefaultWorld()
+			world.Light = tt.light
+			comps := tt.intersection.PrepareComputations(tt.ray)
+
+			if got := world.shadeHit(comps); !tt.want.Equals(got) {
+				t.Errorf("Expected color of hit to be %v; got %v", tt.want, got)
+			}
+		})
 	}
 }
 
@@ -68,5 +154,6 @@ func assertContainsObject(t *testing.T, objects []Object, want Object) {
 }
 
 func objectsEqual(a, b Object) bool {
-	return a.Material().Equals(b.Material())
+	return a.Material().Equals(b.Material()) &&
+		a.Transform().Equals(b.Transform())
 }

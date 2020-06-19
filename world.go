@@ -24,18 +24,36 @@ func MakeDefaultWorld() World {
 		Objects: []Object{
 			Sphere{
 				material: Material{
-					Color:    MakeColor(0.8, 1, 0.6),
-					Diffuse:  0.7,
-					Specular: 0.2,
+					Color:     MakeColor(0.8, 1, 0.6),
+					Ambient:   0.1,
+					Diffuse:   0.7,
+					Specular:  0.2,
+					Shininess: 200.0,
 				},
-				Transform: IdentityMatrix4,
+				transform: IdentityMatrix4,
 			},
 			MakeSphereTransformed(MakeScale(0.5, 0.5, 0.5)),
 		},
 	}
 }
 
-func (w World) Intersect(ray Ray) (intersections Intersections) {
+// Compute the color resulting from the given ray intersecting the objects in
+// the world.
+func (w World) ColorAt(ray Ray) Color {
+	intersections := w.intersect(ray)
+	intersection, hit := intersections.Hit()
+
+	// No hit means we should return the color of the void.
+	if !hit {
+		return MakeColor(0, 0, 0)
+	}
+
+	intersectionComps := intersection.PrepareComputations(ray)
+
+	return w.shadeHit(intersectionComps)
+}
+
+func (w World) intersect(ray Ray) (intersections Intersections) {
 	for _, object := range w.Objects {
 		intersections = append(intersections, object.Intersect(ray)...)
 	}
@@ -45,4 +63,16 @@ func (w World) Intersect(ray Ray) (intersections Intersections) {
 	}
 
 	return intersections
+}
+
+// Find the color that should be produced at the location of the given
+// intersection.
+func (w World) shadeHit(computation IntersectionComputation) Color {
+	return Lighting(
+		computation.Object.Material(),
+		w.Light,
+		computation.Point,
+		computation.EyeVector,
+		computation.NormalVector,
+	)
 }

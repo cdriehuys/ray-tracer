@@ -12,4 +12,7 @@ type Object interface {
 	// the object's surface is given in world space (as opposed to object
 	// space).
 	NormalAt(Tuple) Tuple
+
+	// Get the object's transformation matrix.
+	Transform() Matrix
 }

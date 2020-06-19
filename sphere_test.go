@@ -15,7 +15,7 @@ func TestMakeSphere(t *testing.T) {
 		t.Errorf("Expected sphere to have default material, got %v", got)
 	}
 
-	if got := sphere.Transform; !got.Equals(IdentityMatrix4) {
+	if got := sphere.transform; !got.Equals(IdentityMatrix4) {
 		t.Errorf("Expected default transform to be the identity matrix, got %v", got)
 	}
 }
@@ -25,7 +25,7 @@ func TestMakeSphereTransformed(t *testing.T) {
 
 	sphere := MakeSphereTransformed(transform)
 
-	if got := sphere.Transform; !got.Equals(transform) {
+	if got := sphere.transform; !got.Equals(transform) {
 		t.Errorf("Expected sphere's transform to be %v, got %v", transform, got)
 	}
 }
@@ -88,7 +88,7 @@ func TestSphere_Intersect(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.sphere.Intersect(tt.ray); !reflect.DeepEqual(got, wantIntersections) {
-				t.Errorf("Intersect did not produce expected results:\nExpected: %v\nReceived: %v", wantIntersections, got)
+				t.Errorf("intersect did not produce expected results:\nExpected: %v\nReceived: %v", wantIntersections, got)
 			}
 		})
 	}
